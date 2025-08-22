@@ -1,3 +1,7 @@
+![WhatsApp Image 2025-08-22 at 19 47 38_014f9322](https://github.com/user-attachments/assets/82ac1522-2f4c-43be-9524-3b8fef229bc4)
+![WhatsApp Image 2025-08-22 at 19 47 39_ce5e686e](https://github.com/user-attachments/assets/dcb53edc-f3e6-4ab4-8d6b-35c99478d23f)
+![WhatsApp Image 2025-08-22 at 19 47 40_e229e19c](https://github.com/user-attachments/assets/40d499c1-f87d-487f-bebd-8249527866a4)
+
 # Clip-it – Expo Router Camera & Gallery App
 
 An Expo (React Native) app using Expo Router with tabs, authentication via Clerk, and a camera-driven gallery experience.
