@@ -1,50 +1,134 @@
-# Welcome to your Expo app 👋
+# NewApp – Expo Router Camera & Gallery App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+An Expo (React Native) app using Expo Router with tabs, authentication via Clerk, and a camera-driven gallery experience.
 
-## Get started
+Key libraries: `expo-router`, `expo-camera`, `expo-image`, `expo-file-system`, `expo-notifications`, `@react-navigation/*`, and `@clerk/clerk-expo`.
 
-1. Install dependencies
+## Features
 
-   ```bash
-   npm install
-   ```
+- Camera capture with preview and save flow
+- Image gallery screen with full-screen viewing
+- Tab navigation via Expo Router
+- Authentication with Clerk (publishable key)
+- Theming and custom icons/images
 
-2. Start the app
+## Tech Stack
 
-   ```bash
-   npx expo start
-   ```
+- Expo SDK 53, React Native 0.79, React 19
+- Expo Router for file-based routing in `app/`
+- React Navigation (tabs, native stack)
 
-In the output, you'll find options to open the app in a
+## Getting Started
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+1) Install dependencies
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2) Configure environment variables
 
-## Learn more
+Create a `.env` file in the project root (or set via app config) and provide your Clerk publishable key:
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Note: This project currently references `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` in `app.json` under `expo.extra`. Prefer keeping secrets in `.env` and referencing them via `app.config.(js|ts)` in production.
 
-## Join the community
+3) Start the app
 
-Join our community of developers creating universal apps.
+```bash
+npx expo start
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Open on:
+
+- Android emulator or device
+- iOS simulator (macOS) or device
+- Web via React Native Web
+
+## Scripts
+
+- `npm run start` – Start the Expo dev server
+- `npm run android` – Start and open Android
+- `npm run ios` – Start and open iOS (macOS)
+- `npm run web` – Start and open Web
+- `npm run lint` – Lint the project
+- `npm run reset-project` – Reset to a minimal starter (see `scripts/reset-project.js`)
+
+## Folder Structure
+
+```
+app/
+  (auth)/           # Clerk auth routes: sign-in, sign-up, auth layout
+  (tabs)/           # Tab navigator layout and tab screens (camera, gallery, etc.)
+  _layout.tsx       # Root router layout
+assets/
+  images/           # App icons and images (e.g., icon1.png)
+  fonts/            # Custom fonts
+components/         # Reusable UI components (e.g., PhotoPreviewSection)
+constants/          # Shared constants (e.g., Colors.ts)
+hooks/              # Custom hooks
+scripts/            # Utility scripts (e.g., reset-project.js)
+```
+
+Routing follows Expo Router conventions. See official docs: https://docs.expo.dev/router/introduction
+
+## Configuration
+
+Key config: `app.json`
+
+- `expo.name` / `expo.slug`: App identity
+- `expo.icon` / `android.adaptiveIcon.foregroundImage` / `web.favicon`: App imagery
+- `plugins`: Includes `expo-router` and `expo-splash-screen`
+- `extra`: Includes `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`
+- `android.package`: Application ID for Android
+- `runtimeVersion` and `updates.url`: For OTA updates via EAS
+
+## Permissions
+
+- Camera: required for capture (configured via `expo-camera`)
+- Notifications: if used, ensure permission prompts are handled (`expo-notifications`)
+
+On Android and iOS, Expo handles most permissions, but be sure to request them at runtime where required.
+
+## Development Notes
+
+- Camera screen: see `app/(tabs)/camera.tsx`
+- Gallery screen: see `app/(tabs)/GalleryScreen.tsx`
+- Auth routes: see `app/(auth)/sign-in.tsx` and `app/(auth)/sign-up.tsx`
+- Reusable components: see `components/`
+
+## Build and Release (EAS)
+
+This project includes `eas.json`. To build, install EAS CLI and run:
+
+```bash
+npm install -g eas-cli
+eas build --platform android   # or ios
+```
+
+For updates/OTA:
+
+```bash
+eas update --branch production --message "Update"
+```
+
+Docs: https://docs.expo.dev/build/introduction/
+
+## Troubleshooting
+
+- Metro cache issues: try `npx expo start -c`
+- Android emulator not found: open Android Studio, start an AVD, then run `npm run android`
+- iOS simulator (macOS): ensure Xcode + Command Line Tools installed
+- Reanimated errors: ensure `react-native-reanimated` babel plugin is configured (Expo SDK templates usually include it). If issues persist, rebuild and clear caches.
+
+## Contributing
+
+Pull requests welcome. For major changes, please open an issue first to discuss what you’d like to change.
+
+## License
+
+Specify your license here (e.g., MIT). Add a `LICENSE` file at the project root for clarity.
+

@@ -1,110 +1,191 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Platform, View, Text, StyleSheet, TextInput, TouchableOpacity, Alert , Image } from 'react-native';
+import * as Notifications from 'expo-notifications';
 
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+// Configure how notifications are handled when the app is foregrounded
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+    // iOS 14+ specific options to satisfy NotificationBehavior type
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
-export default function TabTwoScreen() {
+export default function Explore() {
+  const [hours, setHours] = useState<string>('1'); // default: 1 hour
+  const [scheduledId, setScheduledId] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const settings = await Notifications.getPermissionsAsync();
+      if (!settings.granted) {
+        const req = await Notifications.requestPermissionsAsync();
+        if (!req.granted) {
+          Alert.alert('Permission required', 'Notifications permission is needed to schedule reminders.');
+        }
+      }
+
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'Default',
+          importance: Notifications.AndroidImportance.DEFAULT,
+        });
+      }
+    })();
+  }, []);
+
+  const schedule = async () => {
+    const h = Number(hours);
+    if (!Number.isFinite(h) || h <= 0) {
+      Alert.alert('Invalid value', 'Please enter a positive number of hours.');
+      return;
+    }
+    const seconds = Math.max(1, Math.round(h * 3600));
+    if (Platform.OS === 'ios' && seconds < 3600) {
+      Alert.alert('Minimum on iOS', 'For repeating notifications on iOS, the interval must be at least 1 hour.');
+      return;
+    }
+
+    try {
+      // Cancel previous if any
+      if (scheduledId) {
+        await Notifications.cancelScheduledNotificationAsync(scheduledId);
+        setScheduledId(null);
+      }
+
+      const id = await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'Photo reminder',
+          body: 'Review the images you just took in the Gallery tab.',
+        },
+        trigger: { seconds, repeats: true },
+      });
+      setScheduledId(id);
+      const hText = (seconds / 3600).toFixed(2).replace(/\.00$/, '');
+      Alert.alert('Scheduled', `You will be reminded every ${hText} hour${hText === '1' ? '' : 's'}.`);
+    } catch (e: any) {
+      console.warn('Failed to schedule notification', e);
+      Alert.alert('Error', 'Failed to schedule notification. See console for details.');
+    }
+  };
+
+  const cancel = async () => {
+    try {
+      await Notifications.cancelAllScheduledNotificationsAsync();
+      setScheduledId(null);
+      Alert.alert('Canceled', 'All scheduled reminders have been canceled.');
+    } catch (e) {
+      console.warn('Failed to cancel notifications', e);
+    }
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
+    <View style={styles.container}>
+      <Image source={require('../../assets/images/wavy.png')} style={styles.design} />
+      <Text style={[styles.title , styles.z]}>Photo Reminder Frequency</Text>
+      <Text style={[styles.subtitle , styles.z]}>How often (in hours) should we <Text style={{ fontWeight: 'bold' , color: '#fff'}}>remind you to</Text>  check your gallery?</Text>
+
+      <View style={[styles.inputRow , styles.z]}>
+        <TextInput
+          value={hours}
+          onChangeText={setHours}
+          keyboardType="numeric"
+          placeholder="Hours (e.g. 1, 2, 0.5)"
+          style={styles.input}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+        <Text style={styles.suffix}>hr</Text>
+      </View>
+
+      <TouchableOpacity style={[styles.primaryBtn , styles.z]} onPress={schedule}>
+        <Text style={styles.btnText}>Save & Schedule</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={[styles.secondaryBtn , styles.z]} onPress={cancel}>
+        <Text style={styles.btnText}>Cancel Reminders</Text>
+      </TouchableOpacity>
+      <Image source={require('../../assets/images/wavy.png')} style={styles.design2} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
+    padding: 20,
+    paddingTop:"55%",
+    backgroundColor: '#ffde59',
+    position:"relative",
+
   },
-  titleContainer: {
+  z:{
+    zIndex:2,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#000',
+    marginBottom: 16,
+  },
+  inputRow: {
     flexDirection: 'row',
-    gap: 8,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  design2:{
+    width:550,
+    height:500,
+    bottom:-250,
+    left:-280,
+    zIndex:1,
+    transform:[{ rotate: "270deg"}],
+    position: "absolute",
+  },
+  design:{
+    position:"absolute",
+    width:550,
+    height:500,
+    transform:[{ rotate :"90deg"}],
+    top:-60,
+    right:-250,
+    zIndex:1,
+  },
+  input: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 16,
+  },
+  suffix: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: '#fff',
+  },
+  primaryBtn: {
+    backgroundColor: '#111827',
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  secondaryBtn: {
+    backgroundColor: '#6b7280',
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  btnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
