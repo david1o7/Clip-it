@@ -1,4 +1,4 @@
-# NewApp – Expo Router Camera & Gallery App
+# Clip-it – Expo Router Camera & Gallery App
 
 An Expo (React Native) app using Expo Router with tabs, authentication via Clerk, and a camera-driven gallery experience.
 
